@@ -23,6 +23,8 @@ const pin_t WAVE_LED = D6; // Instead of writing D6 over and over again, we'll w
 const int WAVE_BLINKS = 3; // The blue led will blink 3 times
 const int WAVE_TIME = 1000; // Each blink will last 1000 milliseconds
 
+// Added to have a different response depending if wave or pat was sent from a different LED 
+//with shorter blinks
 const int PAT_LED = D5; // Instead of writing D5 over and over again, we'll write PAT_LED
 // You'll need to wire a red LED to this pin.
 const int PAT_BLINKS = 3; // The red led will blink 3 times
@@ -52,7 +54,7 @@ void setup() {
 	// (That means that we will be sending voltage to them)
 
 	pinMode(WAVE_LED, OUTPUT);
-	pinMode(PAT_LED, OUTPUT);
+	pinMode(PAT_LED, OUTPUT); // added for the pat being sent by Particle Photon
 	
     Particle.subscribe(RECIEVED_EVENT, subscriptionHandler);
 }
@@ -68,15 +70,16 @@ void subscriptionHandler(const char *event, const char *data) {
         blinkLED(WAVE_LED, WAVE_BLINKS, WAVE_TIME);
     } else if (strcmp(data, "pat") == 0) {
         blinkLED(PAT_LED, PAT_BLINKS, PAT_TIME);
-    }
-    String message = String::format("Completed: %s event", data);
-    Particle.publish(RESPONSE_EVENT, message);
+    } // Checking if a pat has been sent instead of a wave
+    String message = String::format("Completed: %s event", data); 
+    Particle.publish(RESPONSE_EVENT, message); // Will be able to publish on Particle Console 
+	// if either a wave or pat was sent
 }
 
 void blinkLED(int pin, int blinks, int blinkTime) {
     for(int i = 0; i < blinks; i++) {
-        digitalWrite(pin, HIGH);
-        delay(blinkTime);
+        digitalWrite(pin, HIGH); //changed from WAVE_LED to pin to change pin depending if wave or pat was sent
+        delay(blinkTime); //changed from WAVE_TIME to blinkTime to change length depending if wave or pat was sent
         digitalWrite(pin, LOW);
         delay(blinkTime);
     }
